@@ -1,0 +1,42 @@
+{
+  "name": "catch-recording-automation",
+  "version": "1.0.0",
+  "description": "Playwright + Cucumber + TypeScript automation framework for DEFRA Catch Recording (UI + API)",
+  "scripts": {
+    "test": "npm run test:ui",
+    "test:ui": "cucumber-js --tags \"not @api\"",
+    "test:api": "cucumber-js --tags \"@api\"",
+    "test:smoke": "cucumber-js --tags \"@smoke\"",
+    "test:headed": "cross-env HEADLESS=false cucumber-js --tags \"not @api\"",
+    "report:generate": "ts-node src/utils/report.ts",
+    "posttest": "npm run report:generate",
+    "lint": "eslint --config eslint.config.cjs . --ext .ts",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "keywords": [
+    "playwright",
+    "cucumber",
+    "typescript",
+    "e2e",
+    "api-testing"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@cucumber/cucumber": "^12.0.0",
+    "@eslint/eslintrc": "^3.3.6",
+    "@playwright/test": "^1.61.1",
+    "@types/jasmine": "^6.0.0",
+    "@types/node": "^26.1.1",
+    "@typescript-eslint/eslint-plugin": "^8.65.0",
+    "@typescript-eslint/parser": "^8.65.0",
+    "cross-env": "^10.1.0",
+    "dotenv": "^17.4.2",
+    "eslint": "^10.7.0",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.9.6",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  }
+}
