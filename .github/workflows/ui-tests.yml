@@ -1,10 +1,8 @@
 name: UI Tests
 
 on:
-  push:
-    branches: [main, master]
   pull_request:
-    branches: [main, master]
+    branches: [main]
   workflow_dispatch:
     inputs:
       environment:
@@ -18,8 +16,34 @@ on:
           - dev
 
 jobs:
-  ui-tests:
-    name: Run Playwright UI Tests
+  # Stage 1: Code Validation & Linting
+  stage-1-validate:
+    name: 'Stage 1: Validate & Lint'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check code formatting
+        run: npm run format:check
+
+      - name: Run ESLint
+        run: npm run lint
+
+  # Stage 2: UI Test Execution
+  stage-2-ui-tests:
+    name: 'Stage 2: Execute UI Tests'
+    needs: [stage-1-validate]
     runs-on: ubuntu-latest
 
     steps:
@@ -48,11 +72,33 @@ jobs:
           HEADLESS: 'true'
         run: npm run test:ui
 
-      - name: Upload Test Results & Reports
+      - name: Upload Raw Test Results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ui-test-results
+          name: raw-ui-test-results
+          path: test-results/
+          retention-days: 1
+
+  # Stage 3: Report & Artifact Archiving
+  stage-3-report:
+    name: 'Stage 3: Report & Artifacts'
+    needs: [stage-2-ui-tests]
+    if: always()
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download Test Results
+        uses: actions/download-artifact@v4
+        with:
+          name: raw-ui-test-results
+          path: test-results/
+
+      - name: Publish UI Test Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-test-html-report
           path: |
-            test-results/
+            test-results/cucumber-report.html
+            test-results/*.png
           retention-days: 30
