@@ -60,6 +60,26 @@ npm run format         # format source with Prettier
 An HTML report is generated automatically after each run at
 `test-results/cucumber-report.html`.
 
+## Continuous Integration (GitHub Actions)
+
+This repository includes two separate GitHub Actions workflows located in `.github/workflows/`:
+
+- **UI Tests (`.github/workflows/ui-tests.yml`)**: Installs Playwright Chromium dependencies and executes UI scenarios (`npm run test:ui`).
+- **API Tests (`.github/workflows/api-tests.yml`)**: Lightweight workflow executing API scenarios (`npm run test:api`) without installing browser dependencies.
+
+### GitHub Secrets Configuration
+
+To run workflows against environments requiring credentials, configure the following **Repository Secrets** under `Settings > Secrets and variables > Actions`:
+
+| Secret Name          | Description                                  |
+| -------------------- | -------------------------------------------- |
+| `TEST_USER_EMAIL`    | Email for test user authentication           |
+| `TEST_USER_PASSWORD` | Password for test user authentication        |
+| `BASE_URL`           | _(Optional)_ Override base URL for UI tests  |
+| `API_BASE_URL`       | _(Optional)_ Override base URL for API tests |
+
+Both workflows can also be triggered manually using `workflow_dispatch` with a choice of target environment (`uat`, `staging`, `dev`).
+
 ## Extending
 
 - **New UI page**: add a class under `src/ui/pages` extending `BasePage`, add
