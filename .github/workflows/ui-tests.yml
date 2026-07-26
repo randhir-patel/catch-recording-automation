@@ -5,6 +5,16 @@ on:
     branches: [main]
   workflow_dispatch:
     inputs:
+      browser:
+        description: 'Browser to run tests on'
+        required: false
+        default: 'chromium'
+        type: choice
+        options:
+          - chromium
+          - firefox
+          - webkit
+          - all
       environment:
         description: 'Test Environment'
         required: false
@@ -42,7 +52,7 @@ jobs:
 
   # Stage 2: UI Test Execution
   stage-2-ui-tests:
-    name: 'Stage 2: Execute UI Tests'
+    name: "Stage 2: Execute UI Tests (${{ inputs.browser || 'chromium' }})"
     needs: [stage-1-validate]
     runs-on: ubuntu-latest
 
@@ -60,9 +70,10 @@ jobs:
         run: npm ci
 
       - name: Install Playwright Browsers
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install --with-deps chromium firefox webkit
 
-      - name: Execute UI Tests
+      - name: 'Execute UI Tests (Single Browser)'
+        if: ${{ inputs.browser != 'all' }}
         env:
           TEST_ENV: ${{ inputs.environment || 'uat' }}
           BASE_URL: ${{ secrets.BASE_URL }}
@@ -70,6 +81,43 @@ jobs:
           TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
           TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
           HEADLESS: 'true'
+          BROWSER: ${{ inputs.browser || 'chromium' }}
+        run: npm run test:ui
+
+      - name: 'Execute UI Tests (All Browsers - Chromium)'
+        if: ${{ inputs.browser == 'all' }}
+        env:
+          TEST_ENV: ${{ inputs.environment || 'uat' }}
+          BASE_URL: ${{ secrets.BASE_URL }}
+          API_BASE_URL: ${{ secrets.API_BASE_URL }}
+          TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
+          TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+          HEADLESS: 'true'
+          BROWSER: 'chromium'
+        run: npm run test:ui
+
+      - name: 'Execute UI Tests (All Browsers - Firefox)'
+        if: ${{ inputs.browser == 'all' }}
+        env:
+          TEST_ENV: ${{ inputs.environment || 'uat' }}
+          BASE_URL: ${{ secrets.BASE_URL }}
+          API_BASE_URL: ${{ secrets.API_BASE_URL }}
+          TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
+          TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+          HEADLESS: 'true'
+          BROWSER: 'firefox'
+        run: npm run test:ui
+
+      - name: 'Execute UI Tests (All Browsers - Webkit)'
+        if: ${{ inputs.browser == 'all' }}
+        env:
+          TEST_ENV: ${{ inputs.environment || 'uat' }}
+          BASE_URL: ${{ secrets.BASE_URL }}
+          API_BASE_URL: ${{ secrets.API_BASE_URL }}
+          TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
+          TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+          HEADLESS: 'true'
+          BROWSER: 'webkit'
         run: npm run test:ui
 
       - name: Upload Raw Test Results
